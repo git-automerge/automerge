@@ -4,11 +4,6 @@ set -euo pipefail
 
 MANPAGE_NAME="git-automerge.1"
 
-# Change these to your repo info
-GITHUB_USER="git-automerge"
-GITHUB_REPO="automerge"
-GITHUB_BRANCH="main"  # or your default branch
-
 # List of executables to install from bin/
 BIN_FILES=(
   "git-automerge"
@@ -29,6 +24,11 @@ fi
 
 # Function to download a file from GitHub raw URL
 download_file() {
+  # Change these to your repo info
+  GITHUB_USER="git-automerge"
+  GITHUB_REPO="automerge"
+  GITHUB_BRANCH="main"  # or your default branch
+
   local file_path=$1
   local dest_path=$2
   local url="https://raw.githubusercontent.com/$GITHUB_USER/$GITHUB_REPO/$GITHUB_BRANCH/$file_path"
