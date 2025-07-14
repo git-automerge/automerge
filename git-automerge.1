@@ -10,15 +10,15 @@ git\-automerge \- Automatically merge remote branches into a temporary branch an
 .SH DESCRIPTION
 \fBgit-automerge\fR is a Git subcommand that automates merging a list of remote branches into a temporary branch derived from a configured base branch. The result is tagged and pushed to the remote repository. Temporary branches and local tags are cleaned up afterward.
 
-Configuration is read from a YAML file named \fBconfig.yaml\fR located in the root of your Git repository.
+Configuration is read from a YAML file named \fBautomerge-config.yaml\fR located in the root of your Git repository.
 
 .SH OPTIONS
 .TP
 \fB--env=\fINAME\fR
-Specify the target environment (e.g., \fIproduction\fR or \fIstaging\fR) as defined in \fBconfig.yaml\fR. If not provided, the user will be prompted to select an environment interactively.
+Specify the target environment (e.g., \fIproduction\fR or \fIstaging\fR) as defined in \fBautomerge-config.yaml\fR. If not provided, the user will be prompted to select an environment interactively.
 
 .SH CONFIGURATION
-The tool requires a \fBconfig.yaml\fR file in the Git root with the following structure:
+The tool requires a \fBautomerge-config.yaml\fR file in the Git root with the following structure:
 
 .EX
 production:

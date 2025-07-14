@@ -55,7 +55,6 @@ MANPAGE_FILE="/tmp/$MANPAGE_NAME"
 download_file "$MANPAGE_NAME" "$MANPAGE_FILE"
 install -m 0644 "$MANPAGE_FILE" "$MAN_DIR/$MANPAGE_NAME"
 echo "🔄 Updating man database..."
-mandb >/dev/null
 
 echo "✅ Installation complete. Try:"
 echo "   git automerge --help"
