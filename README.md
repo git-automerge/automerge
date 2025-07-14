@@ -39,7 +39,7 @@ chmod +x /usr/local/bin/git-automerge
 ## Usage
 
 ```bash
-git automerge
+git automerge --help
 ```
 
 ## Configuration Example (automerge-config.yaml)

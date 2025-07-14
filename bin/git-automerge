@@ -32,7 +32,8 @@ EOF
 fi
 
 
-CONFIG_FILE="automerge-config.yaml"
+CONFIG_FILE="$(mktemp /tmp/automerge-config.yaml)"
+
 ORIGINAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 TEMP_BRANCH=""
 TAG_NAME=""
@@ -50,6 +51,35 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+
+# Fetch latest from remote
+echo "🔄 Fetching origin..."
+git fetch  --quite
+
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
+if [[ -z "$DEFAULT_BRANCH" ]]; then
+  echo "❌ Could not determine default branch of origin."
+  exit 1
+fi
+
+echo "📍 Default branch is: $DEFAULT_BRANCH"
+
+CONFIG_PATH="automerge-config.yaml"
+REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
+REMOTE_CONFIG_FILE="$(mktemp /tmp/automerge-config.yaml)"
+
+# Get base branch for this env from remote config
+echo "📥 Fetching config from $REMOTE_REF..."
+
+if ! git show "$REMOTE_REF" > "$REMOTE_CONFIG_FILE" 2>/dev/null; then
+  echo "❌ Could not load $CONFIG_PATH from $REMOTE_REF"
+  exit 1
+fi
+
+echo "✅ Config loaded into $REMOTE_CONFIG_FILE"
+
+# Save config to file for parsing
+echo "$REMOTE_CONFIG_RAW" > "$CONFIG_FILE"
 
 # Check prerequisites
 if [[ ! -f "$CONFIG_FILE" ]]; then
