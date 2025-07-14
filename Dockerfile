@@ -1,7 +1,7 @@
 FROM alpine:3.19
 
 # Install required packages
-RUN apk add --no-cache git bash curl man man-pages mandoc
+RUN apk add --no-cache git bash curl
 
 # Set working directory
 WORKDIR /automerge
