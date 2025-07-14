@@ -4,6 +4,11 @@ set -euo pipefail
 
 MANPAGE_NAME="git-automerge.1"
 
+# Change these to your repo info
+GITHUB_USER="git-automerge"
+GITHUB_REPO="automerge"
+GITHUB_BRANCH="main"  # or your default branch
+
 # List of executables to install from bin/
 BIN_FILES=(
   "git-automerge"
