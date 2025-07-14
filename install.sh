@@ -4,6 +4,12 @@ set -euo pipefail
 
 MANPAGE_NAME="git-automerge.1"
 
+# List of executables to install from bin/
+BIN_FILES=(
+  "git-automerge"
+  "automerge-init.sh"
+)
+
 BIN_DIR="/usr/local/bin"
 MAN_DIR="/usr/local/share/man/man1"
 
@@ -16,20 +22,27 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-# Verify bin directory exists
-if [[ ! -d ./bin ]]; then
-  echo "❌ Directory 'bin' not found in current path."
-  exit 1
-fi
-
-# Install all executable files from bin/
-for file in ./bin/*; do
-  if [[ -f "$file" && -x "$file" ]]; then
-    echo "🔧 Installing $(basename "$file") to $BIN_DIR..."
-    install -m 0755 "$file" "$BIN_DIR/$(basename "$file")"
+# Function to download a file from GitHub raw URL
+download_file() {
+  local file_path=$1
+  local dest_path=$2
+  local url="https://raw.githubusercontent.com/$GITHUB_USER/$GITHUB_REPO/$GITHUB_BRANCH/$file_path"
+  echo "⬇️ Downloading $url ..."
+  if command -v curl >/dev/null; then
+    curl -fsSL "$url" -o "$dest_path"
+  elif command -v wget >/dev/null; then
+    wget -qO "$dest_path" "$url"
   else
-    echo "⚠️ Skipping non-executable or non-regular file: $file"
+    echo "❌ Neither curl nor wget is installed."
+    exit 1
   fi
+  chmod +x "$dest_path"
+}
+
+for file in "${BIN_FILES[@]}"; do
+  dest="$BIN_DIR/$file"
+  download_file "bin/$file" "$dest"
+  echo "✅ Installed $file to $dest"
 done
 
 # Install man page
