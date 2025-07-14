@@ -50,14 +50,12 @@ for file in "${BIN_FILES[@]}"; do
 done
 
 # Install man page
-if [[ -f "$MANPAGE_NAME" ]]; then
-  echo "📘 Installing man page to $MAN_DIR..."
-  install -m 0644 "$MANPAGE_NAME" "$MAN_DIR/$MANPAGE_NAME"
-  echo "🔄 Updating man database..."
-  mandb >/dev/null
-else
-  echo "⚠️  No man page '$MANPAGE_NAME' found. Skipping manual installation."
-fi
+echo "📘 Installing man page to $MAN_DIR..."
+MANPAGE_FILE="/tmp/$MANPAGE_NAME"
+download_file "$MANPAGE_NAME" "$MANPAGE_FILE"
+install -m 0644 "$MANPAGE_FILE" "$MAN_DIR/$MANPAGE_NAME"
+echo "🔄 Updating man database..."
+mandb >/dev/null
 
 echo "✅ Installation complete. Try:"
 echo "   git automerge --help"

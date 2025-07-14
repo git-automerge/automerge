@@ -20,12 +20,12 @@
 
 Via curl
 ```bash
-curl -sSL https://raw.githubusercontent.com/git-automerge/automerge/refs/heads/main/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/git-automerge/automerge/main/install.sh | sudo bash
 ```
 
 Via wget
 ```bash
-wget -qO - https://raw.githubusercontent.com/git-automerge/automerge/refs/heads/main/install.sh | sudo bash
+wget -qO - https://raw.githubusercontent.com/git-automerge/automerge/main/install.sh | sudo bash
 ```
 
 Download directly
