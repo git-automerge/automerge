@@ -17,13 +17,13 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Verify bin directory exists
-if [[ ! -d bin ]]; then
+if [[ ! -d ./bin ]]; then
   echo "❌ Directory 'bin' not found in current path."
   exit 1
 fi
 
 # Install all executable files from bin/
-for file in bin/*; do
+for file in ./bin/*; do
   if [[ -f "$file" && -x "$file" ]]; then
     echo "🔧 Installing $(basename "$file") to $BIN_DIR..."
     install -m 0755 "$file" "$BIN_DIR/$(basename "$file")"
