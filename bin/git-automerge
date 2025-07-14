@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+CONFIG_FILE="automerge-config.yaml"
+ORIGINAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+TEMP_BRANCH=""
+TAG_NAME=""
+
+# Cleanup on exit
+cleanup() {
+  echo -e "\n🧹 Cleaning up..."
+  if [[ -n "$TEMP_BRANCH" ]]; then
+    git checkout "$ORIGINAL_BRANCH" >/dev/null 2>&1 || true
+    git branch -D "$TEMP_BRANCH" >/dev/null 2>&1 || true
+    echo "🔁 Restored branch: $ORIGINAL_BRANCH"
+  fi
+  if [[ -n "$TAG_NAME" ]]; then
+    git tag -d "$TAG_NAME" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup EXIT
+
+# Check prerequisites
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  echo "❌ Config file '$CONFIG_FILE' not found."
+  exit 1
+fi
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "❌ Working directory not clean. Commit or stash changes."
+  exit 1
+fi
+
+# Extract environment from --env= or prompt
+ENV=""
+for arg in "$@"; do
+  if [[ "$arg" == --env=* ]]; then
+    ENV="${arg#--env=}"
+  fi
+done
+
+if [[ -z "$ENV" ]]; then
+  echo "Select environment:"
+  mapfile -t ENVIRONMENTS < <(yq e 'keys | .[]' "$CONFIG_FILE")
+  for i in "${!ENVIRONMENTS[@]}"; do
+    echo "  [$i] ${ENVIRONMENTS[$i]}"
+  done
+  read -rp "Enter number: " CHOICE
+  ENV="${ENVIRONMENTS[$CHOICE]}"
+fi
+
+# Extract tag config for selected env
+TAG_PREFIX_RAW=$(yq e ".${ENV}.tag_prefix" "$CONFIG_FILE")
+if [[ "$TAG_PREFIX_RAW" == "false" || "$TAG_PREFIX_RAW" == "null" || -z "$TAG_PREFIX_RAW" ]]; then
+  TAG_PREFIX=""
+else
+  TAG_PREFIX="$TAG_PREFIX_RAW"
+fi
+
+# Extract branch config for selected env
+BASE_BRANCH=$(yq e ".${ENV}.base" "$CONFIG_FILE")
+
+mapfile -t BRANCH_PATTERNS < <(yq e ".${ENV}.branches[]" "$CONFIG_FILE")
+
+if [[ -z "$BASE_BRANCH" || "${#BRANCH_PATTERNS[@]}" -eq 0 ]]; then
+  echo "❌ Invalid environment config in YAML."
+  exit 1
+fi
+
+# Fetch remote branches
+echo "Fetching remotes..."
+git fetch --all
+
+mapfile -t REMOTE_BRANCHES < <(git branch -r | grep -v '->' | sed 's|origin/||')
+
+# Match patterns
+MATCHED_BRANCHES=()
+for pattern in "${BRANCH_PATTERNS[@]}"; do
+  regex="^${pattern//\*/.*}$"
+  for rb in "${REMOTE_BRANCHES[@]}"; do
+    if [[ "$rb" =~ $regex ]]; then
+      MATCHED_BRANCHES+=("$rb")
+    fi
+  done
+done
+
+if [[ "${#MATCHED_BRANCHES[@]}" -eq 0 ]]; then
+  echo "❌ No matching remote branches for '$ENV'."
+  exit 1
+fi
+
+echo "✅ Branches to merge:"
+for b in "${MATCHED_BRANCHES[@]}"; do
+  echo "  - $b"
+done
+
+# Create temp branch
+TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+TEMP_BRANCH="automerge_tmp_${ENV}_${TIMESTAMP}"
+TAG_NAME="${TAG_PREFIX}${ENV}-${TIMESTAMP}"
+
+echo "Creating branch '$TEMP_BRANCH' from origin/$BASE_BRANCH..."
+git checkout -b "$TEMP_BRANCH" "origin/$BASE_BRANCH"
+
+# Merge branches
+for b in "${MATCHED_BRANCHES[@]}"; do
+  echo "Merging origin/$b..."
+  if ! git merge --no-edit "origin/$b"; then
+    echo "❌ Merge conflict from '$b'. Resolve manually."
+    exit 1
+  fi
+done
+
+# Tag and push
+echo "Creating tag '$TAG_NAME'..."
+git tag "$TAG_NAME"
+git push origin "$TAG_NAME"
+
+echo "✅ Tag '$TAG_NAME' pushed to origin."
