@@ -1,5 +1,7 @@
 # AutoMerge
 
+[![Website](https://img.shields.io/badge/site-git--automerge.github.io-blue?logo=githubpages)](https://git-automerge.github.io/)
+
 **AutoMerge** is a CLI tool to automate merging multiple remote Git branches into a temporary branch, tagging that branch with an environment-specific tag, pushing the tag to origin, and cleaning up afterward.
 
 ---
