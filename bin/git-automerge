@@ -63,7 +63,7 @@ echo "📍 Default branch is: $DEFAULT_BRANCH"
 
 CONFIG_PATH="automerge-config.yaml"
 REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
-CONFIG_FILE="$(mktemp /tmp/automerge-config.yaml)"
+CONFIG_FILE="/tmp/automerge-config.yaml"
 
 # Get base branch for this env from remote config
 echo "📥 Fetching config from $REMOTE_REF..."
