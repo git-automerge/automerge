@@ -7,7 +7,6 @@ MANPAGE_NAME="git-automerge.1"
 # List of executables to install from bin/
 BIN_FILES=(
   "git-automerge"
-  "automerge-init.sh"
 )
 
 BIN_DIR="/usr/local/bin"
