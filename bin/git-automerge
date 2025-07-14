@@ -61,18 +61,17 @@ fi
 
 echo "📍 Default branch is: $DEFAULT_BRANCH"
 
-CONFIG_PATH="automerge-config.yaml"
-REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
-CONFIG_FILE="/tmp/automerge-config.yaml"
+CONFIG_FILE="automerge-config.yaml"
 
+#CONFIG_PATH="automerge-config.yaml"
+#REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
 # Get base branch for this env from remote config
-echo "📥 Fetching config from $REMOTE_REF..."
-
-if ! git show "$REMOTE_REF" > "$CONFIG_FILE" 2>/dev/null; then
-  echo "❌ Could not load $CONFIG_PATH from $REMOTE_REF"
-  exit 1
-fi
-echo "✅ Config loaded into $CONFIG_FILE"
+#echo "📥 Fetching config from $REMOTE_REF..."
+#if ! git show "$REMOTE_REF" > "$CONFIG_FILE" 2>/dev/null; then
+#  echo "❌ Could not load $CONFIG_PATH from $REMOTE_REF"
+#  exit 1
+#fi
+#echo "✅ Config loaded into $CONFIG_FILE"
 
 # Check prerequisites
 if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -118,11 +117,7 @@ fi
 # Extract branch config for selected env
 BASE_BRANCH=$(yq e ".${ENV}.base" "$CONFIG_FILE")
 
-BRANCH_PATTERNS=()
-while IFS= read -r line; do
-  BRANCH_PATTERNS+=("$line")
-done < <(yq eval ".${ENV}.branches[]" "$CONFIG_FILE")
-
+BRANCH_PATTERNS=$(<(yq eval ".${ENV}.branches[]" "$CONFIG_FILE"))
 if [[ -z "$BASE_BRANCH" || "${#BRANCH_PATTERNS[@]}" -eq 0 ]]; then
   echo "❌ Invalid environment config in YAML."
   exit 1
@@ -136,6 +131,8 @@ while IFS= read -r line; do
     REMOTE_BRANCHES+=("$branch")
   fi
 done < <(git branch -r)
+
+echo $REMOTE_BRANCHES
 
 # Match patterns
 MATCHED_BRANCHES=()
