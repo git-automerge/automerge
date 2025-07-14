@@ -94,20 +94,35 @@ done
 if [[ -z "$ENV" ]]; then
   echo "Select environment:"
   
-  ENVIRONMENTS=$(yq e 'keys | .[]' "$CONFIG_FILE")
+  ENVIRONMENTS=()
+  while IFS= read -r env; do
+    ENVIRONMENTS+=("$env")
+  done < <(yq e 'keys | .[]' "$CONFIG_FILE")
+
   for i in "${!ENVIRONMENTS[@]}"; do
     echo "  [$i] ${ENVIRONMENTS[$i]}"
   done
-  read -rp "Enter number: " CHOICE
-  ENV="${ENVIRONMENTS[$CHOICE]}"
 fi
 
-echo "Use environment ${ENV}"
+# Prompt for selection
+read -rp "Choose environment number: " selection
+
+# Validate input
+if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -lt 0 ] || [ "$selection" -ge "${#ENVIRONMENTS[@]}" ]; then
+  echo "❌ Invalid selection."
+  exit 1
+fi
+
+# Get selected environment
+ENV="${ENVIRONMENTS[$selection]}"
+echo "✅ Selected environment: $ENV"
 
 # Extract tag config for selected env
 TAG_PREFIX_RAW=$(yq e ".${ENV}.tag_prefix" "$CONFIG_FILE")
-if [[ "$TAG_PREFIX_RAW" == "false" || "$TAG_PREFIX_RAW" == "null" || -z "$TAG_PREFIX_RAW" ]]; then
+if [[ "$TAG_PREFIX_RAW" == "false" ]]; then
   TAG_PREFIX=""
+elif [[ "$TAG_PREFIX_RAW" == "null" || -z "$TAG_PREFIX_RAW" ]]; then
+  TAG_PREFIX="automerge-"
 else
   TAG_PREFIX="$TAG_PREFIX_RAW"
 fi
@@ -115,7 +130,11 @@ fi
 # Extract branch config for selected env
 BASE_BRANCH=$(yq e ".${ENV}.base" "$CONFIG_FILE")
 
-BRANCH_PATTERNS=$(<(yq eval ".${ENV}.branches[]" "$CONFIG_FILE"))
+BRANCH_PATTERNS=()
+while IFS= read -r pattern; do
+  BRANCH_PATTERNS+=("$pattern")
+done < <(yq eval ".${ENV}.branches[]" "$CONFIG_FILE")
+
 if [[ -z "$BASE_BRANCH" || "${#BRANCH_PATTERNS[@]}" -eq 0 ]]; then
   echo "❌ Invalid environment config in YAML."
   exit 1
@@ -125,32 +144,31 @@ REMOTE_BRANCHES=()
 while IFS= read -r line; do
   # Skip symbolic refs like origin/HEAD -> origin/main
   if [[ "$line" != *'->'* ]]; then
-    branch="${line#origin/}"
-    REMOTE_BRANCHES+=("$branch")
+    REMOTE_BRANCHES+=("${line#origin/}")
   fi
 done < <(git branch -r)
-
-echo $REMOTE_BRANCHES
 
 # Match patterns
 MATCHED_BRANCHES=()
 for pattern in "${BRANCH_PATTERNS[@]}"; do
-  regex="^${pattern//\*/.*}$"
-  for rb in "${REMOTE_BRANCHES[@]}"; do
-    if [[ "$rb" =~ $regex ]]; then
-      MATCHED_BRANCHES+=("$rb")
+  for branch in "${REMOTE_BRANCHES[@]}"; do
+    branch="$(echo "$branch" | xargs)"
+    if [[ "$branch" =~ $pattern ]]; then
+      MATCHED_BRANCHES+=("$branch")
     fi
   done
 done
 
-if [[ "${#MATCHED_BRANCHES[@]}" -eq 0 ]]; then
-  echo "❌ No matching remote branches for '$ENV'."
+echo "✅ Found ${#MATCHED_BRANCHES[@]} matching branches."
+
+if [[ ${#MATCHED_BRANCHES[@]} -eq 0 ]]; then
+  echo "❌ No branches matched the patterns."
   exit 1
 fi
 
 echo "✅ Branches to merge:"
 for b in "${MATCHED_BRANCHES[@]}"; do
-  echo "  - $b"
+  echo "$b"
 done
 
 # Create temp branch
@@ -163,8 +181,8 @@ git checkout -b "$TEMP_BRANCH" "origin/$BASE_BRANCH"
 
 # Merge branches
 for b in "${MATCHED_BRANCHES[@]}"; do
-  echo "Merging origin/$b..."
-  if ! git merge --no-edit "origin/$b"; then
+  echo "Merging $b..."
+  if ! git merge --no-edit "$b"; then
     echo "❌ Merge conflict from '$b'. Resolve manually."
     exit 1
   fi
