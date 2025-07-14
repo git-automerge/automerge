@@ -51,7 +51,7 @@ trap cleanup EXIT
 
 # Fetch latest from remote
 echo "🔄 Fetching origin..."
-git fetch
+git fetch --all
 
 DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
 if [[ -z "$DEFAULT_BRANCH" ]]; then
@@ -94,7 +94,12 @@ done
 
 if [[ -z "$ENV" ]]; then
   echo "Select environment:"
-  mapfile -t ENVIRONMENTS < <(yq e 'keys | .[]' "$CONFIG_FILE")
+  
+  ENVIRONMENTS=()
+  while IFS= read -r env; do
+    ENVIRONMENTS+=("$env")
+  done < <(yq e 'keys | .[]' "$CONFIG_FILE")
+
   for i in "${!ENVIRONMENTS[@]}"; do
     echo "  [$i] ${ENVIRONMENTS[$i]}"
   done
@@ -113,18 +118,15 @@ fi
 # Extract branch config for selected env
 BASE_BRANCH=$(yq e ".${ENV}.base" "$CONFIG_FILE")
 
-mapfile -t BRANCH_PATTERNS < <(yq e ".${ENV}.branches[]" "$CONFIG_FILE")
+BRANCH_PATTERNS=()
+while IFS= read -r line; do
+  BRANCH_PATTERNS+=("$line")
+done < <(yq eval ".${ENV}.branches[]" "$CONFIG_FILE")
 
 if [[ -z "$BASE_BRANCH" || "${#BRANCH_PATTERNS[@]}" -eq 0 ]]; then
   echo "❌ Invalid environment config in YAML."
   exit 1
 fi
-
-# Fetch remote branches
-echo "Fetching remotes..."
-git fetch --all
-
-mapfile -t REMOTE_BRANCHES < <(git branch -r | grep -v '->' | sed 's|origin/||')
 
 # Match patterns
 MATCHED_BRANCHES=()
