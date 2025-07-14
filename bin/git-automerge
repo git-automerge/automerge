@@ -94,17 +94,15 @@ done
 if [[ -z "$ENV" ]]; then
   echo "Select environment:"
   
-  ENVIRONMENTS=()
-  while IFS= read -r env; do
-    ENVIRONMENTS+=("$env")
-  done < <(yq e 'keys | .[]' "$CONFIG_FILE")
-
+  ENVIRONMENTS=$(yq e 'keys | .[]' "$CONFIG_FILE")
   for i in "${!ENVIRONMENTS[@]}"; do
     echo "  [$i] ${ENVIRONMENTS[$i]}"
   done
   read -rp "Enter number: " CHOICE
   ENV="${ENVIRONMENTS[$CHOICE]}"
 fi
+
+echo "Use environment ${ENV}"
 
 # Extract tag config for selected env
 TAG_PREFIX_RAW=$(yq e ".${ENV}.tag_prefix" "$CONFIG_FILE")
