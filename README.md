@@ -18,6 +18,11 @@
 
 ## Installation
 
+```bash
+curl -L https://github.com/git-automerge/automerge/blob/main/bin/git-automerge -o /usr/local/bin/git-automerge
+chmod +x /usr/local/bin/git-automerge
+```
+
 Install via Composer:
 
 (Optional) Add post script to create symlink
