@@ -1,0 +1,93 @@
+.TH GIT-AUTOMERGE 1 "July 2025" "git-automerge 1.0" "Git Automerge Manual"
+
+.SH NAME
+git\-automerge \- Automatically merge remote branches into a temporary branch and tag the result
+
+.SH SYNOPSIS
+.B git automerge
+[\fI--env=ENVIRONMENT\fR]
+
+.SH DESCRIPTION
+\fBgit-automerge\fR is a Git subcommand that automates merging a list of remote branches into a temporary branch derived from a configured base branch. The result is tagged and pushed to the remote repository. Temporary branches and local tags are cleaned up afterward.
+
+Configuration is read from a YAML file named \fBconfig.yaml\fR located in the root of your Git repository.
+
+.SH OPTIONS
+.TP
+\fB--env=\fINAME\fR
+Specify the target environment (e.g., \fIproduction\fR or \fIstaging\fR) as defined in \fBconfig.yaml\fR. If not provided, the user will be prompted to select an environment interactively.
+
+.SH CONFIGURATION
+The tool requires a \fBconfig.yaml\fR file in the Git root with the following structure:
+
+.EX
+production:
+  base: main
+  branches:
+    - "feature-*"
+    - "bugfix-*"
+  tag_prefix: "prod-"
+
+staging:
+  base: develop
+  branches:
+    - "staging-*"
+  tag_prefix: false
+.EE
+
+Fields:
+.IP \fBbase\fR
+The branch used as the base for creating the temporary merge branch.
+.IP \fBbranches\fR
+A list of wildcard patterns for remote branches to merge.
+.IP \fBtag_prefix\fR
+Optional string prefixed to the generated tag. Set to false or empty to disable prefix.
+
+.SH BEHAVIOR
+Upon execution, the script performs the following:
+
+.IP \(bu
+Checks that the working directory is clean.
+.IP \(bu
+Fetches all remote branches.
+.IP \(bu
+Creates a temporary branch from the configured base.
+.IP \(bu
+Merges all matching remote branches.
+.IP \(bu
+Tags the result with \fI[prefix][env]-[timestamp]\fR.
+.IP \(bu
+Pushes the tag to the remote origin.
+.IP \(bu
+Cleans up the temporary branch and local tag.
+.IP \(bu
+Restores the original checked-out branch.
+
+.SH REQUIREMENTS
+.IP \(bu
+\fBgit\fR
+.IP \(bu
+\fBbash\fR (version 4+)
+.IP \(bu
+\fByq\fR (https://github.com/mikefarah/yq)
+
+.SH EXAMPLES
+.TP
+Run interactively:
+.B
+git automerge
+
+.TP
+Run for specific environment:
+.B
+git automerge --env=production
+
+.SH AUTHOR
+Written by the \fBgit-automerge\fR project contributors.
+
+.SH SEE ALSO
+.BR git (1),
+.BR yq (1)
+
+.SH BUGS
+Report issues at https://github.com/git-automerge/automerge
