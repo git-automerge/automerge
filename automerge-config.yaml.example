@@ -1,3 +1,5 @@
+# Example configuration for git automerge
+
 staging:
   base: main
   branches:

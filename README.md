@@ -18,38 +18,26 @@
 
 ## Installation
 
+Via curl
+```bash
+curl -sSL https://raw.githubusercontent.com/git-automerge/automerge/main/install.sh | sudo bash
+```
+
+Via wget
+```bash
+wget -qO - https://raw.githubusercontent.com/git-automerge/automerge/main/install.sh | sudo bash
+```
+
+Download directly
 ```bash
 curl -L https://github.com/git-automerge/automerge/blob/main/bin/git-automerge -o /usr/local/bin/git-automerge
 chmod +x /usr/local/bin/git-automerge
 ```
 
-Install via Composer:
-
-(Optional) Add post script to create symlink
-```json
-"scripts": {
-  "post-install-cmd": [
-    "[ -L automerge ] || ln -s vendor/bin/automerge automerge"
-  ],
-  "post-update-cmd": [
-    "[ -L automerge ] || ln -s vendor/bin/automerge automerge"
-  ]
-}
-```
-
-```bash
-composer require boehsermoe/automerge
-```
-
-(Optional) create symlink 
-```
-ln -s vendor/bin/automerge automerge
-```
-
 ## Usage
 
 ```bash
-vendor/bin/automerge
+git automerge
 ```
 
 ## Configuration Example (automerge-config.yaml)

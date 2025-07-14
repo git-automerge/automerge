@@ -2,13 +2,12 @@
 
 set -euo pipefail
 
-SCRIPT_NAME="git-automerge"
 MANPAGE_NAME="git-automerge.1"
 
 BIN_DIR="/usr/local/bin"
 MAN_DIR="/usr/local/share/man/man1"
 
-echo "📦 Installing $SCRIPT_NAME..."
+echo "📦 Installing automerge scripts from ./bin ..."
 
 # Check for root permissions
 if [[ $EUID -ne 0 ]]; then
@@ -17,14 +16,21 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-# Install script
-if [[ ! -f "$SCRIPT_NAME" ]]; then
-  echo "❌ Cannot find $SCRIPT_NAME in current directory."
+# Verify bin directory exists
+if [[ ! -d bin ]]; then
+  echo "❌ Directory 'bin' not found in current path."
   exit 1
 fi
 
-echo "🔧 Copying $SCRIPT_NAME to $BIN_DIR..."
-install -m 0755 "$SCRIPT_NAME" "$BIN_DIR/$SCRIPT_NAME"
+# Install all executable files from bin/
+for file in bin/*; do
+  if [[ -f "$file" && -x "$file" ]]; then
+    echo "🔧 Installing $(basename "$file") to $BIN_DIR..."
+    install -m 0755 "$file" "$BIN_DIR/$(basename "$file")"
+  else
+    echo "⚠️ Skipping non-executable or non-regular file: $file"
+  fi
+done
 
 # Install man page
 if [[ -f "$MANPAGE_NAME" ]]; then
