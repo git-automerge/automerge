@@ -74,9 +74,8 @@ if ! git show "$REMOTE_REF" > "$TMP_CONFIG_FILE" 2>/dev/null; then
 else
   trap 'rm -f "$TMP_CONFIG_FILE"' EXIT
   CONFIG_FILE=$TMP_CONFIG_FILE
+  echo "✅ Config loaded into $CONFIG_FILE"
 fi
-
-echo "✅ Config loaded into $CONFIG_FILE"
 
 # Check prerequisites
 if [[ ! -f "$CONFIG_FILE" ]]; then
