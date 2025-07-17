@@ -70,8 +70,7 @@ REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
 echo "📥 Fetching config from $REMOTE_REF..."
 if ! git show "$REMOTE_REF" > "$TMP_CONFIG_FILE" 2>/dev/null; then
   rm -f "$TMP_CONFIG_FILE"  
-  echo "❌ Could not load $CONFIG_PATH from $REMOTE_REF"
-  exit 1
+  echo "❌ Skip loading $CONFIG_PATH from $REMOTE_REF (file not found on remote default branch)"
 else
   trap 'rm -f "$TMP_CONFIG_FILE"' EXIT
   CONFIG_FILE=$TMP_CONFIG_FILE
