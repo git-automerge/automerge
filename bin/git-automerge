@@ -63,15 +63,21 @@ echo "📍 Default branch is: $DEFAULT_BRANCH"
 
 CONFIG_FILE="automerge-config.yaml"
 
-#CONFIG_PATH="automerge-config.yaml"
-#REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
+TMP_CONFIG_FILE=$(mktemp)
+CONFIG_PATH="automerge-config.yaml"
+REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
 # Get base branch for this env from remote config
-#echo "📥 Fetching config from $REMOTE_REF..."
-#if ! git show "$REMOTE_REF" > "$CONFIG_FILE" 2>/dev/null; then
-#  echo "❌ Could not load $CONFIG_PATH from $REMOTE_REF"
-#  exit 1
-#fi
-#echo "✅ Config loaded into $CONFIG_FILE"
+echo "📥 Fetching config from $REMOTE_REF..."
+if ! git show "$REMOTE_REF" > "$TMP_CONFIG_FILE" 2>/dev/null; then
+  rm -f "$TMP_CONFIG_FILE"  
+  echo "❌ Could not load $CONFIG_PATH from $REMOTE_REF"
+  exit 1
+else
+  trap 'rm -f "$TMP_CONFIG_FILE"' EXIT
+  CONFIG_FILE=$TMP_CONFIG_FILE
+fi
+
+echo "✅ Config loaded into $CONFIG_FILE"
 
 # Check prerequisites
 if [[ ! -f "$CONFIG_FILE" ]]; then
