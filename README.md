@@ -69,3 +69,28 @@ feature:
 - Tag the commit with a timestamp and environment name.
 - Push the tag to the remote.
 - Clean up local temporary branch and tag, and restore your original branch.
+
+```mermaid
+---
+config:
+  theme: redux
+  layout: dagre
+---
+flowchart LR
+ subgraph LR envStaging["Env Staging"]
+    direction LR
+    stageMain(["main"]) --> stagingAutomerge["automerge-***"]
+    stageFeature1(["feature/1"]) --> stagingAutomerge
+    stageFeature2(["feature/1"]) --> stagingAutomerge
+  end
+ 
+ subgraph envProd["Env Production"]
+    direction LR
+    prodMain(["main"]) --> prodAutomerge["automerge-***"]
+    prodFeature1(["feature/1"]) --> prodAutomerge
+    prodFeature2(["feature/1"]) --> prodAutomerge
+  end
+
+stagingAutomerge -.-> pipeline
+prodAutomerge -.-> pipeline
+```
