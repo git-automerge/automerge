@@ -1,5 +1,7 @@
 # Example configuration for git automerge
 
+config_source: origin/main:automerge-config.yaml
+
 staging:
   base: main
   branches:

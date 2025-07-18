@@ -21,6 +21,8 @@ Specify the target environment (e.g., \fIproduction\fR or \fIstaging\fR) as defi
 The tool requires a \fBautomerge-config.yaml\fR file in the Git root with the following structure:
 
 .EX
+config_source: origin/main:automerge-config.yaml # optional to load from remote default branch
+
 production:
   base: main
   branches:

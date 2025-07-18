@@ -53,24 +53,24 @@ trap cleanup EXIT
 echo "🔄 Fetching origin..."
 git fetch --all
 
-DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
-if [[ -z "$DEFAULT_BRANCH" ]]; then
-  echo "❌ Could not determine default branch of origin."
+LOCAL_CONFIG_FILE="automerge-config.yaml"
+
+# Load base config (must be local for now)
+if [[ ! -f "$LOCAL_CONFIG_FILE" ]]; then
+  echo "❌ Local config file not found: $LOCAL_CONFIG_FILE"
   exit 1
 fi
 
-echo "📍 Default branch is: $DEFAULT_BRANCH"
-
 CONFIG_FILE="automerge-config.yaml"
 
-TMP_CONFIG_FILE=$(mktemp)
-CONFIG_PATH="automerge-config.yaml"
-REMOTE_REF="origin/${DEFAULT_BRANCH}:${CONFIG_PATH}"
 # Get base branch for this env from remote config
-echo "📥 Fetching config from $REMOTE_REF..."
-if ! git show "$REMOTE_REF" > "$TMP_CONFIG_FILE" 2>/dev/null; then
+TMP_CONFIG_FILE=$(mktemp)
+CONFIG_SOURCE=$(yq e '.config_source // ""' "$DEFAULT_CONFIG_FILE")
+echo "📥 Fetching config from $CONFIG_SOURCE..."
+if ! git show "$CONFIG_SOURCE" > "$TMP_CONFIG_FILE" 2>/dev/null; then
   rm -f "$TMP_CONFIG_FILE"  
-  echo "❌ Skip loading $CONFIG_PATH from $REMOTE_REF (file not found on remote default branch)"
+  echo "❌ Skip loading config from $CONFIG_SOURCE (file not found on remote default branch)"
+  CONFIG_FILE=$LOCAL_CONFIG_FILE
 else
   trap 'rm -f "$TMP_CONFIG_FILE"' EXIT
   CONFIG_FILE=$TMP_CONFIG_FILE

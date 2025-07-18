@@ -9,6 +9,7 @@
 ## Features
 
 - Reads configuration from a YAML file defining multiple environments
+- Supports read the configuration YAML from origin default branch
 - Supports wildcard patterns for included remote branches to merge
 - Creates a temporary branch from a base branch before merging
 - Tags the merge commit with an environment name and timestamp
