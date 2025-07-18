@@ -47,6 +47,8 @@ git automerge --help
 
 Create a automerge-config.yaml file in your project root with this structure:
 ```yaml
+config_source: origin/main:automerge-config.yaml # Optional; Read config from remote branch
+
 staging:
   base: main
   branches:
