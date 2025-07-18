@@ -62,7 +62,6 @@ feature:
   tag_prefix: false # omitted here; no prefix will be used
 ```
 
-
 ## The script will:
 
 - Check your working directory is clean.
@@ -100,3 +99,23 @@ flowchart LR
 stagingAutomerge -.-> pipeline
 prodAutomerge -.-> pipeline
 ```
+
+## Remote vs. local config
+
+By default, git-automerge reads its configuration from a local `automerge-config.yaml` file. However, this can create inconsistencies if developers run the tool from different branches with outdated or incomplete config files.
+
+To solve this, you can define a remote config source using the `config_source` option at the top level of your config file.
+
+🔒 Consistency: Always uses the canonical config from the main branch, even when running the tool on a feature branch.
+
+🌐 Centralized Control: Ensures all developers and CI runners use the same rules for branching, tagging, and merging.
+
+🔄 Dynamic Updates: Changes to the config take effect immediately without requiring a rebase or manual update on local clones.
+
+
+### When config_source is defined:
+
+- The local config file is read first.
+- If config_source is set, the script fetches the config from the specified Git reference (e.g. origin/main:automerge-config.yaml) using git show.
+- The fetched config replaces the local one for the current operation.
+- If config_source is missing or empty, the local config is used as fallback.
