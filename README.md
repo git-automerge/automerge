@@ -80,8 +80,8 @@ config:
   layout: dagre
 ---
 flowchart LR
- cliStage(["git autobase --env=staging"]) --> envStage
- cliProd(["git autobase --env=production"]) --> envProd
+ cliStage(["git automerge --env=staging"]) --> envStage
+ cliProd(["git automerge --env=production"]) --> envProd
 
  subgraph envStage["Env Staging"]
     direction LR
