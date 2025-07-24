@@ -68,6 +68,7 @@ feature:
 - Fetch all remote branches.
 - Create a temporary branch from the base branch.
 - Merge all matching remote branches.
+- Push mode option for "tag" or "branch"
 - Tag the commit with a timestamp and environment name.
 - Push the tag to the remote.
 - Clean up local temporary branch and tag, and restore your original branch.
