@@ -177,7 +177,7 @@ done
 
 # Create temp branch
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
-TEMP_BRANCH="automerge_tmp_${ENV}_${TIMESTAMP}"
+TEMP_BRANCH="automerge_${ENV}_${TIMESTAMP}"
 TAG_NAME="${TAG_PREFIX}${ENV}-${TIMESTAMP}"
 
 echo "Creating branch '$TEMP_BRANCH' from origin/$BASE_BRANCH..."
@@ -192,9 +192,28 @@ for b in "${MATCHED_BRANCHES[@]}"; do
   fi
 done
 
-# Tag and push
-echo "Creating tag '$TAG_NAME'..."
-git tag "$TAG_NAME"
-git push origin "$TAG_NAME"
+# Determine push mode (default to "tag" if not set)
+PUSH_MODE=$(yq e ".push_mode // \"tag\"" "$CONFIG_FILE")
 
-echo "✅ Tag '$TAG_NAME' pushed to origin."
+# Push either tag or branch
+if [[ "$PUSH_MODE" == "branch" ]]; then
+  echo "🚀 Pushing temporary branch: $TEMP_BRANCH"
+  git push origin "$TEMP_BRANCH"
+  echo "✅ Branch '$TEMP_BRANCH' pushed to origin."
+else
+  echo "🏷️  Creating tag: $TAG_NAME"
+  git tag "$TAG_NAME"
+  git push origin "$TAG_NAME"
+  echo "✅ Tag '$TAG_NAME' pushed to origin."
+fi
+
+# Cleanup logic
+echo "🧹 Deleting local and remote branch after push..."
+git push origin --delete "$TEMP_BRANCH" || true
+git branch -D "$TEMP_BRANCH" || true
+
+if [[ "$PUSH_MODE" != "branch" ]]; then
+  echo "🧹 Deleting local and remote tag..."
+  git tag -d "$TAG_NAME" || true
+  git push origin ":refs/tags/$TAG_NAME" || true
+fi
