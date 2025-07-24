@@ -65,7 +65,7 @@ CONFIG_FILE="automerge-config.yaml"
 
 # Get base branch for this env from remote config
 TMP_CONFIG_FILE=$(mktemp)
-CONFIG_SOURCE=$(yq e '.config_source // ""' "$DEFAULT_CONFIG_FILE")
+CONFIG_SOURCE=$(yq e '.config_source // ""' "$LOCAL_CONFIG_FILE")
 echo "📥 Fetching config from $CONFIG_SOURCE..."
 if ! git show "$CONFIG_SOURCE" > "$TMP_CONFIG_FILE" 2>/dev/null; then
   rm -f "$TMP_CONFIG_FILE"  
@@ -74,7 +74,6 @@ if ! git show "$CONFIG_SOURCE" > "$TMP_CONFIG_FILE" 2>/dev/null; then
 else
   trap 'rm -f "$TMP_CONFIG_FILE"' EXIT
   CONFIG_FILE=$TMP_CONFIG_FILE
-  echo "✅ Config loaded into $CONFIG_FILE"
 fi
 
 # Check prerequisites
@@ -86,6 +85,9 @@ if [[ -n "$(git status --porcelain)" ]]; then
   echo "❌ Working directory not clean. Commit or stash changes."
   exit 1
 fi
+
+echo "✅ Config loaded from $CONFIG_FILE"
+
 
 # Extract environment from --env= or prompt
 ENV=""
@@ -101,7 +103,7 @@ if [[ -z "$ENV" ]]; then
   ENVIRONMENTS=()
   while IFS= read -r env; do
     ENVIRONMENTS+=("$env")
-  done < <(yq e 'keys | .[]' "$CONFIG_FILE")
+  done < <(yq e '.envs | keys | .[]' "$CONFIG_FILE")
 
   for i in "${!ENVIRONMENTS[@]}"; do
     echo "  [$i] ${ENVIRONMENTS[$i]}"
@@ -122,7 +124,7 @@ ENV="${ENVIRONMENTS[$selection]}"
 echo "✅ Selected environment: $ENV"
 
 # Extract tag config for selected env
-TAG_PREFIX_RAW=$(yq e ".${ENV}.tag_prefix" "$CONFIG_FILE")
+TAG_PREFIX_RAW=$(yq e ".envs.${ENV}.tag_prefix" "$CONFIG_FILE")
 if [[ "$TAG_PREFIX_RAW" == "false" ]]; then
   TAG_PREFIX=""
 elif [[ "$TAG_PREFIX_RAW" == "null" || -z "$TAG_PREFIX_RAW" ]]; then
@@ -132,12 +134,12 @@ else
 fi
 
 # Extract branch config for selected env
-BASE_BRANCH=$(yq e ".${ENV}.base" "$CONFIG_FILE")
+BASE_BRANCH=$(yq e ".envs.${ENV}.base" "$CONFIG_FILE")
 
 BRANCH_PATTERNS=()
 while IFS= read -r pattern; do
   BRANCH_PATTERNS+=("$pattern")
-done < <(yq eval ".${ENV}.branches[]" "$CONFIG_FILE")
+done < <(yq eval ".envs.${ENV}.branches[]" "$CONFIG_FILE")
 
 if [[ -z "$BASE_BRANCH" || "${#BRANCH_PATTERNS[@]}" -eq 0 ]]; then
   echo "❌ Invalid environment config in YAML."
@@ -208,11 +210,12 @@ else
 fi
 
 # Cleanup logic
-echo "🧹 Deleting local and remote branch after push..."
-git push origin --delete "$TEMP_BRANCH" || true
-git branch -D "$TEMP_BRANCH" || true
 
-if [[ "$PUSH_MODE" != "branch" ]]; then
+
+if [[ "$PUSH_MODE" == "branch" ]]; then
+  echo "🧹 Deleting remote branch after push..."
+  git push origin --delete "$TEMP_BRANCH" || true
+else
   echo "🧹 Deleting local and remote tag..."
   git tag -d "$TAG_NAME" || true
   git push origin ":refs/tags/$TAG_NAME" || true
