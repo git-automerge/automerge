@@ -49,17 +49,18 @@ Create a automerge-config.yaml file in your project root with this structure:
 ```yaml
 config_source: origin/main:automerge-config.yaml # Optional; Read config from remote branch
 
-staging:
-  base: main
-  branches:
-    - "bugfix/*"
-  tag_prefix: "prod-"      # Optional; Default is "automerge-" if empty or false, no prefix used
+envs:
+  staging:
+    base: main
+    branches:
+      - "bugfix/*"
+    tag_prefix: "prod-"      # Optional; Default is "automerge-" if empty or false, no prefix used
 
-feature:
-  base: develop
-  branches:
-    - "feature/*"
-  tag_prefix: false # omitted here; no prefix will be used
+  feature:
+    base: develop
+    branches:
+      - "feature/*"
+    tag_prefix: false # omitted here; no prefix will be used
 ```
 
 ## The script will:

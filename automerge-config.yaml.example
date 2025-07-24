@@ -3,12 +3,13 @@
 config_source: origin/main:automerge-config.yaml
 push_mode: tag   # or "branch"
 
-staging:
-  base: main
-  branches:
-    - hotfix/*
+envs: 
+  staging:
+    base: main
+    branches:
+      - hotfix/*
 
-feature:
-  base: main
-  branches:
-    - feature/*
+  feature:
+    base: main
+    branches:
+      - feature/*
