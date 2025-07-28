@@ -108,19 +108,20 @@ if [[ -z "$ENV" ]]; then
   for i in "${!ENVIRONMENTS[@]}"; do
     echo "  [$i] ${ENVIRONMENTS[$i]}"
   done
+
+  # Prompt for selection
+  read -rp "Choose environment number: " selection
+  
+  # Validate input
+  if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -lt 0 ] || [ "$selection" -ge "${#ENVIRONMENTS[@]}" ]; then
+    echo "❌ Invalid selection."
+    exit 1
+  fi
+  
+  # Get selected environment
+  ENV="${ENVIRONMENTS[$selection]}"
 fi
 
-# Prompt for selection
-read -rp "Choose environment number: " selection
-
-# Validate input
-if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -lt 0 ] || [ "$selection" -ge "${#ENVIRONMENTS[@]}" ]; then
-  echo "❌ Invalid selection."
-  exit 1
-fi
-
-# Get selected environment
-ENV="${ENVIRONMENTS[$selection]}"
 echo "✅ Selected environment: $ENV"
 
 # Extract tag config for selected env
