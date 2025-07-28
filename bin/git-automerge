@@ -211,12 +211,17 @@ fi
 
 # Cleanup logic
 
+cleanup
 
-if [[ "$PUSH_MODE" == "branch" ]]; then
-  echo "🧹 Deleting remote branch after push..."
-  git push origin --delete "$TEMP_BRANCH" || true
-else
-  echo "🧹 Deleting local and remote tag..."
-  git tag -d "$TAG_NAME" || true
-  git push origin ":refs/tags/$TAG_NAME" || true
+CLEANUP_REMOTE=$(yq e ".cleanup_remote // \"tag\"" "$CONFIG_FILE")
+
+if [[ "$CLEANUP_MODE" == "yes" || "$CLEANUP_MODE" == "true" || "$CLEANUP_MODE" == "1" ]]; then
+  if [[ "$PUSH_MODE" == "branch" ]]; then
+    echo "🧹 Deleting remote branch after push..."
+    git push origin --delete "$TEMP_BRANCH" || true
+  else
+    echo "🧹 Deleting local and remote tag..."
+    git tag -d "$TAG_NAME" || true
+    git push origin ":refs/tags/$TAG_NAME" || true
+  fi
 fi
