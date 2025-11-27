@@ -37,6 +37,8 @@ curl -L https://github.com/git-automerge/automerge/blob/main/bin/git-automerge -
 chmod +x /usr/local/bin/git-automerge
 ```
 
+Add `.tmp_automerge-config.yaml` to the .gitignore
+
 ## Usage
 
 ```bash
