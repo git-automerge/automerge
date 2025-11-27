@@ -64,7 +64,7 @@ if [[ ! -f "$LOCAL_CONFIG_FILE" ]]; then
   exit 1
 fi
 
-if [[ -n "$(git status --short)" ]]; then
+if [[ -n "$(git diff --quiet --ignore-submodules HEAD)" ]]; then
   echo "❌ Working directory not clean. Commit or stash changes."
   exit 1
 fi
