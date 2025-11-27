@@ -12,17 +12,20 @@ if [[ "$1" == "init" ]]; then
 
   cat > "$CONFIG_FILE" <<EOF
   # Example configuration for git automerge
+  # config_source: origin/production:automerge-config.yaml
+  # push_mode: branch # push mode branch or tag
 
-  staging:
-    base: main
-    branches:
-      - hotfix/*
-    tag_prefix: false
-
-  feature:
-    base: main
-    branches:
-      - feature/*
+  envs:
+    staging:
+      base: main
+      branches:
+        - hotfix/*
+      tag_prefix: false
+  
+    feature:
+      base: main
+      branches:
+        - feature/*
   # if no tag_prefix default 'automerge-' is used
 EOF
 
@@ -84,7 +87,7 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
   echo "❌ Config file '$CONFIG_FILE' not found."
   exit 1
 fi
-if [[ -n "$(git status --porcelain)" ]]; then
+if [[ -n "$(git status --short)" ]]; then
   echo "❌ Working directory not clean. Commit or stash changes."
   exit 1
 fi
