@@ -64,6 +64,11 @@ if [[ ! -f "$LOCAL_CONFIG_FILE" ]]; then
   exit 1
 fi
 
+if [[ -n "$(git status --short)" ]]; then
+  echo "❌ Working directory not clean. Commit or stash changes."
+  exit 1
+fi
+
 CONFIG_FILE="automerge-config.yaml"
 
 # Get base branch for this env from remote config
@@ -83,10 +88,6 @@ fi
 # Check prerequisites
 if [[ ! -f "$CONFIG_FILE" ]]; then
   echo "❌ Config file '$CONFIG_FILE' not found."
-  exit 1
-fi
-if [[ -n "$(git status --short)" ]]; then
-  echo "❌ Working directory not clean. Commit or stash changes."
   exit 1
 fi
 
