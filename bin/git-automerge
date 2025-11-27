@@ -68,8 +68,6 @@ CONFIG_FILE="automerge-config.yaml"
 
 # Get base branch for this env from remote config
 TMP_CONFIG_FILE=".tmp_automerge-config.yaml"
-# clean up tmp file
-rm -f $TMP_CONFIG_FILE
 
 CONFIG_SOURCE=$(yq e '.config_source // ""' "$LOCAL_CONFIG_FILE")
 echo "📥 Fetching config from $CONFIG_SOURCE..."
