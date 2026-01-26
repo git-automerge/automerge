@@ -166,14 +166,14 @@ for pattern in "${BRANCH_PATTERNS[@]}"; do
   if [[ "$pattern" == *"*"* ]]; then
     for branch in "${REMOTE_BRANCHES[@]}"; do
       branch="$(echo "$branch" | xargs)"
-      if [[ "$branch" =~ $pattern ]]; then
+      if [[ "${branch#*/}" =~ $pattern ]]; then
         MATCHED_BRANCHES+=("$branch")
       fi
     done  
   else
     for branch in "${REMOTE_BRANCHES[@]}"; do
       branch="$(echo "$branch" | xargs)"
-      if [[ "$branch" == $pattern ]]; then
+      if [[ "${branch#*/}" == $pattern ]]; then
         MATCHED_BRANCHES+=("$branch")
       fi
     done
