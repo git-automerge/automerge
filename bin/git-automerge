@@ -163,12 +163,21 @@ done < <(git branch -r)
 # Match patterns
 MATCHED_BRANCHES=()
 for pattern in "${BRANCH_PATTERNS[@]}"; do
-  for branch in "${REMOTE_BRANCHES[@]}"; do
-    branch="$(echo "$branch" | xargs)"
-    if [[ "$branch" =~ $pattern ]]; then
-      MATCHED_BRANCHES+=("$branch")
-    fi
-  done
+  if [[ "$pattern" == *"*"* ]]; then
+    for branch in "${REMOTE_BRANCHES[@]}"; do
+      branch="$(echo "$branch" | xargs)"
+      if [[ "$branch" =~ $pattern ]]; then
+        MATCHED_BRANCHES+=("$branch")
+      fi
+    done  
+  else
+    for branch in "${REMOTE_BRANCHES[@]}"; do
+      branch="$(echo "$branch" | xargs)"
+      if [[ "$branch" == $pattern ]]; then
+        MATCHED_BRANCHES+=("$branch")
+      fi
+    done
+  fi
 done
 
 echo "✅ Found ${#MATCHED_BRANCHES[@]} matching branches."
