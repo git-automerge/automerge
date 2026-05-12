@@ -204,8 +204,28 @@ git checkout -b "$TEMP_BRANCH" "origin/$BASE_BRANCH"
 for b in "${MATCHED_BRANCHES[@]}"; do
   echo "Merging $b..."
   if ! git merge --no-edit "$b"; then
-    echo "❌ Merge conflict from '$b'. Resolve manually."
-    exit 1
+    echo ""
+    echo "⚠️  Merge conflict detected while merging '$b'."
+    echo "   Resolve the conflicts in your editor, then:"
+    echo "     git add <resolved-files>"
+    echo "     git commit --no-edit   (or: git merge --continue)"
+    echo ""
+    echo "   Press ENTER when done, or type 'abort' to cancel automerge."
+    while true; do
+      read -rp "Continue? [ENTER / abort]: " user_input
+      if [[ "$user_input" == "abort" ]]; then
+        echo "🛑 Automerge aborted by user."
+        git merge --abort 2>/dev/null || true
+        exit 1
+      fi
+      # Check if the merge is still in progress
+      if [[ -f "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
+        echo "⚠️  Merge is not yet complete. Finish resolving conflicts and run 'git merge --continue' (or 'git add' + 'git commit'), then press ENTER."
+      else
+        echo "✅ Conflict resolved. Continuing..."
+        break
+      fi
+    done
   fi
 done
 
