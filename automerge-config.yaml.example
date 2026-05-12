@@ -3,11 +3,19 @@
 config_source: origin/main:automerge-config.yaml
 push_mode: tag   # or "branch"
 
-envs: 
+# Optional: auto-resolve merge conflicts using a strategy.
+# Values: ours, theirs, ours+whitespace, theirs+whitespace, whitespace
+# conflict_strategy: whitespace
+
+# Optional: enable git rerere to replay previously recorded conflict resolutions.
+# rerere: true
+
+envs:
   staging:
     base: main
     branches:
       - hotfix/*
+    # conflict_strategy: ours   # overrides global conflict_strategy for this env
 
   feature:
     base: main

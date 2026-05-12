@@ -34,6 +34,9 @@ EOF
   exit
 fi
 
+VERSION="1.0.1"
+echo "ℹ️  git-automerge v${VERSION}"
+
 ORIGINAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 TEMP_BRANCH=""
 TAG_NAME=""
@@ -48,6 +51,11 @@ cleanup() {
   fi
   if [[ -n "$TAG_NAME" ]]; then
     git tag -d "$TAG_NAME" >/dev/null 2>&1 || true
+  fi
+  if [[ -n "$RERERE_WAS_ENABLED" ]]; then
+    git config --local rerere.enabled "$RERERE_WAS_ENABLED" || true
+  elif git config --local rerere.enabled &>/dev/null; then
+    git config --local --unset rerere.enabled || true
   fi
 }
 trap cleanup EXIT
@@ -152,6 +160,31 @@ if [[ -z "$BASE_BRANCH" || "${#BRANCH_PATTERNS[@]}" -eq 0 ]]; then
   exit 1
 fi
 
+CONFLICT_STRATEGY=$(yq e "(.envs.${ENV}.conflict_strategy // .conflict_strategy // \"\")" "$CONFIG_FILE")
+RERERE_ENABLED=$(yq e ".rerere // \"false\"" "$CONFIG_FILE")
+
+MERGE_EXTRA_FLAGS=()
+case "$CONFLICT_STRATEGY" in
+  ours)              MERGE_EXTRA_FLAGS=(-X ours) ;;
+  theirs)            MERGE_EXTRA_FLAGS=(-X theirs) ;;
+  ours+whitespace)   MERGE_EXTRA_FLAGS=(-X ours -X ignore-all-space) ;;
+  theirs+whitespace) MERGE_EXTRA_FLAGS=(-X theirs -X ignore-all-space) ;;
+  whitespace)        MERGE_EXTRA_FLAGS=(-X ignore-all-space) ;;
+  "")                ;;
+  *)                 echo "⚠️  Unknown conflict_strategy '${CONFLICT_STRATEGY}'. Ignoring." ;;
+esac
+
+if [[ -n "$CONFLICT_STRATEGY" && ${#MERGE_EXTRA_FLAGS[@]} -gt 0 ]]; then
+  echo "ℹ️  Conflict strategy: ${CONFLICT_STRATEGY}"
+fi
+
+RERERE_WAS_ENABLED=""
+if [[ "$RERERE_ENABLED" == "true" || "$RERERE_ENABLED" == "1" ]]; then
+  RERERE_WAS_ENABLED=$(git config --local rerere.enabled 2>/dev/null || echo "")
+  git config --local rerere.enabled true || true
+  echo "ℹ️  git rerere enabled for this operation."
+fi
+
 REMOTE_BRANCHES=()
 while IFS= read -r line; do
   # Skip symbolic refs like origin/HEAD -> origin/main
@@ -203,9 +236,32 @@ git checkout -b "$TEMP_BRANCH" "origin/$BASE_BRANCH"
 # Merge branches
 for b in "${MATCHED_BRANCHES[@]}"; do
   echo "Merging $b..."
-  if ! git merge --no-edit "$b"; then
-    echo "❌ Merge conflict from '$b'. Resolve manually."
-    exit 1
+  if ! git merge --no-edit "${MERGE_EXTRA_FLAGS[@]}" "$b"; then
+    echo ""
+    echo "⚠️  Merge conflict detected while merging '$b'."
+    if [[ ${#MERGE_EXTRA_FLAGS[@]} -gt 0 ]]; then
+      echo "   (Strategy '${CONFLICT_STRATEGY}' could not auto-resolve all conflicts.)"
+    fi
+    echo "   Resolve the conflicts in your editor, then:"
+    echo "     git add <resolved-files>"
+    echo "     git commit --no-edit   (or: git merge --continue)"
+    echo ""
+    echo "   Press ENTER when done, or type 'abort' to cancel automerge."
+    while true; do
+      read -rp "Continue? [ENTER / abort]: " user_input
+      if [[ "$user_input" == "abort" ]]; then
+        echo "🛑 Automerge aborted by user."
+        git merge --abort 2>/dev/null || true
+        exit 1
+      fi
+      # Check if the merge is still in progress
+      if [[ -f "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
+        echo "⚠️  Merge is not yet complete. Finish resolving conflicts and run 'git merge --continue' (or 'git add' + 'git commit'), then press ENTER."
+      else
+        echo "✅ Conflict resolved. Continuing..."
+        break
+      fi
+    done
   fi
 done
 
