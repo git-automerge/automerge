@@ -51,6 +51,7 @@ done
 
 # Install man page
 echo "📘 Installing man page to $MAN_DIR..."
+mkdir -p "$MAN_DIR"
 MANPAGE_FILE="/tmp/$MANPAGE_NAME"
 download_file "$MANPAGE_NAME" "$MANPAGE_FILE"
 install -m 0644 "$MANPAGE_FILE" "$MAN_DIR/$MANPAGE_NAME"
