@@ -1,4 +1,4 @@
-.TH GIT-AUTOMERGE 1 "July 2025" "git-automerge 1.0" "Git Automerge Manual"
+.TH GIT-AUTOMERGE 1 "July 2025" "git-automerge 1.0.1" "Git Automerge Manual"
 
 .SH NAME
 git\-automerge \- Automatically merge remote branches into a temporary branch and tag the result
@@ -46,6 +46,10 @@ The branch used as the base for creating the temporary merge branch.
 A list of wildcard patterns for remote branches to merge.
 .IP \fBtag_prefix\fR
 Optional string prefixed to the generated tag. Set to false or empty to disable prefix.
+.IP \fBconflict_strategy\fR
+Optional. Automatically resolve merge conflicts using a Git merge strategy option. Can be set at the top level (applies to all environments) or per environment (per-env takes precedence). Supported values: \fBours\fR (prefer the base branch side for every conflict), \fBtheirs\fR (prefer the incoming branch side), \fBours+whitespace\fR, \fBtheirs+whitespace\fR, \fBwhitespace\fR (auto-resolve whitespace-only conflicts). If a conflict cannot be fully resolved by the chosen strategy, the tool falls back to the interactive prompt.
+.IP \fBrerere\fR
+Optional boolean (true/false). When true, enables \fBgit rerere\fR for the duration of the merge operation. Git will record how conflicts are manually resolved and automatically reapply those resolutions if the same conflict appears in a future run. The tool enables and disables rerere automatically around the operation. Default: false.
 
 .SH BEHAVIOR
 Upon execution, the script performs the following:
