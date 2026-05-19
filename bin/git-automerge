@@ -193,6 +193,35 @@ while IFS= read -r line; do
   fi
 done < <(git branch -r)
 
+# Cleanup stale automerge_<env>_* branches before creating the new one
+CLEANUP_STALE_BRANCHES=$(yq e "(.envs.${ENV}.cleanup_stale_branches // .cleanup_stale_branches // \"false\")" "$CONFIG_FILE")
+if [[ "$CLEANUP_STALE_BRANCHES" == "yes" || "$CLEANUP_STALE_BRANCHES" == "true" || "$CLEANUP_STALE_BRANCHES" == "1" ]]; then
+  STALE_PATTERN="automerge_${ENV}_"
+  echo "🧹 Cleaning up stale ${STALE_PATTERN}* branches..."
+
+  while IFS= read -r stale; do
+    [[ -z "$stale" ]] && continue
+    stale="$(echo "$stale" | xargs)"
+    stale="${stale#\*}"
+    stale="$(echo "$stale" | xargs)"
+    if ! git branch -D "$stale" >/dev/null 2>&1; then
+      echo "⚠️  Could not delete local branch '$stale' (skipping)."
+    else
+      echo "   deleted local: $stale"
+    fi
+  done < <(git for-each-ref --format='%(refname:short)' "refs/heads/${STALE_PATTERN}*")
+
+  for rb in "${REMOTE_BRANCHES[@]}"; do
+    if [[ "$rb" == ${STALE_PATTERN}* ]]; then
+      if ! git push origin --delete "$rb" >/dev/null 2>&1; then
+        echo "⚠️  Could not delete remote branch 'origin/$rb' (skipping)."
+      else
+        echo "   deleted remote: $rb"
+      fi
+    fi
+  done
+fi
+
 # Match patterns
 MATCHED_BRANCHES=()
 for pattern in "${BRANCH_PATTERNS[@]}"; do
@@ -284,9 +313,9 @@ fi
 
 cleanup
 
-CLEANUP_REMOTE=$(yq e ".cleanup_remote // \"tag\"" "$CONFIG_FILE")
+CLEANUP_REMOTE=$(yq e ".cleanup_remote // \"\"" "$CONFIG_FILE")
 
-if [[ "$CLEANUP_MODE" == "yes" || "$CLEANUP_MODE" == "true" || "$CLEANUP_MODE" == "1" ]]; then
+if [[ "$CLEANUP_REMOTE" == "yes" || "$CLEANUP_REMOTE" == "true" || "$CLEANUP_REMOTE" == "1" ]]; then
   if [[ "$PUSH_MODE" == "branch" ]]; then
     echo "🧹 Deleting remote branch after push..."
     git push origin --delete "$TEMP_BRANCH" || true
