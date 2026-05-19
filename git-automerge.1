@@ -50,6 +50,8 @@ Optional string prefixed to the generated tag. Set to false or empty to disable 
 Optional. Automatically resolve merge conflicts using a Git merge strategy option. Can be set at the top level (applies to all environments) or per environment (per-env takes precedence). Supported values: \fBours\fR (prefer the base branch side for every conflict), \fBtheirs\fR (prefer the incoming branch side), \fBours+whitespace\fR, \fBtheirs+whitespace\fR, \fBwhitespace\fR (auto-resolve whitespace-only conflicts). If a conflict cannot be fully resolved by the chosen strategy, the tool falls back to the interactive prompt.
 .IP \fBrerere\fR
 Optional boolean (true/false). When true, enables \fBgit rerere\fR for the duration of the merge operation. Git will record how conflicts are manually resolved and automatically reapply those resolutions if the same conflict appears in a future run. The tool enables and disables rerere automatically around the operation. Default: false.
+.IP \fBcleanup_remote\fR
+Optional boolean (true/false). When true, the remote tag or branch pushed by git-automerge is deleted immediately after the push succeeds. Useful when the pushed artifact is only needed as a transient deployment trigger and should not accumulate in the remote repository. Default: false.
 
 .SH BEHAVIOR
 Upon execution, the script performs the following:

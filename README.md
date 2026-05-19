@@ -172,3 +172,19 @@ envs:
 `rerere` is disabled by default. When enabled, git-automerge temporarily sets `rerere.enabled = true` in the local repo config for the run, then restores the previous value (or unsets it) on exit, so it does not permanently alter your repository configuration.
 
 `rerere` pairs well with `conflict_strategy`: the strategy handles simple conflicts automatically on the first encounter, and rerere handles them automatically on every subsequent run.
+
+## Deleting the remote tag or branch after push (`cleanup_remote`)
+
+By default, the remote tag or branch created by git-automerge is kept after push. Set `cleanup_remote: true` to delete it automatically once the push succeeds.
+
+```yaml
+cleanup_remote: true  # default: false
+
+envs:
+  staging:
+    base: main
+    branches:
+      - "feature/*"
+```
+
+This is useful when the pushed tag or branch serves only as a transient deployment trigger and should not accumulate in the remote repository.
