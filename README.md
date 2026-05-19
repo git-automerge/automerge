@@ -16,6 +16,8 @@
 - Pushes the tag to the remote repository
 - Automatically cleans up the temporary branch and local tag
 - Supports optional customizable tag prefix per environment
+- Auto-resolves merge conflicts using configurable strategies
+- Records and replays conflict resolutions with `git rerere`
 
 ---
 
@@ -123,3 +125,50 @@ To solve this, you can define a remote config source using the `config_source` o
 - If config_source is set, the script fetches the config from the specified Git reference (e.g. origin/main:automerge-config.yaml) using git show.
 - The fetched config replaces the local one for the current operation.
 - If config_source is missing or empty, the local config is used as fallback.
+
+## Conflict resolution
+
+By default, when a merge conflict is detected git-automerge pauses and prompts you to resolve it manually, then continues once you press ENTER.
+
+### Automatic strategies (`conflict_strategy`)
+
+You can configure an automatic conflict resolution strategy so that unambiguous conflicts are resolved without human input. The strategy can be set globally or overridden per environment — the per-environment value takes precedence.
+
+```yaml
+conflict_strategy: theirs  # global default
+
+envs:
+  staging:
+    base: main
+    branches:
+      - "feature/*"
+    conflict_strategy: ours  # overrides global for this env
+```
+
+| Strategy | Behaviour |
+|---|---|
+| `ours` | Keeps the current branch's version of every conflict |
+| `theirs` | Accepts the incoming branch's version of every conflict |
+| `ours+whitespace` | `ours`, also ignoring whitespace-only differences |
+| `theirs+whitespace` | `theirs`, also ignoring whitespace-only differences |
+| `whitespace` | Auto-resolves whitespace-only conflicts; manual resolution for all others |
+
+When a strategy is active, git-automerge prints the selected strategy before merging begins. If Git still cannot auto-resolve every conflict with the chosen strategy, it falls back to the interactive prompt so you can resolve the remainder by hand.
+
+### Recording and replaying resolutions (`rerere`)
+
+Setting `rerere: true` enables [git rerere](https://git-scm.com/docs/git-rerere) (*reuse recorded resolution*) for the duration of the run. When enabled, Git records how you resolve each conflict the first time it appears. On future runs that encounter the same conflict, Git replays the recorded resolution automatically — no manual intervention needed.
+
+```yaml
+rerere: true
+
+envs:
+  staging:
+    base: main
+    branches:
+      - "feature/*"
+```
+
+`rerere` is disabled by default. When enabled, git-automerge temporarily sets `rerere.enabled = true` in the local repo config for the run, then restores the previous value (or unsets it) on exit, so it does not permanently alter your repository configuration.
+
+`rerere` pairs well with `conflict_strategy`: the strategy handles simple conflicts automatically on the first encounter, and rerere handles them automatically on every subsequent run.
