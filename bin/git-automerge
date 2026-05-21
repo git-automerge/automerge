@@ -62,8 +62,7 @@ trap cleanup EXIT
 
 # Fetch latest from remote and prune stale remote-tracking refs
 echo "🔄 Fetching origin..."
-git fetch --all
-git remote prune origin
+git fetch --all --prune
 
 LOCAL_CONFIG_FILE="automerge-config.yaml"
 
