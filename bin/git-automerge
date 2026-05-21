@@ -104,11 +104,18 @@ echo "✅ Config loaded from $CONFIG_FILE"
 
 # Extract environment from --env= or prompt
 ENV=""
+NO_CONFLICT_STRATEGY=false
 for arg in "$@"; do
   if [[ "$arg" == --env=* ]]; then
     ENV="${arg#--env=}"
+  elif [[ "$arg" == "--no-conflict-strategy" ]]; then
+    NO_CONFLICT_STRATEGY=true
   fi
 done
+
+if [[ "$NO_CONFLICT_STRATEGY" == true ]]; then
+  echo "ℹ️  --no-conflict-strategy set: ignoring config conflict_strategy for this run."
+fi
 
 if [[ -z "$ENV" ]]; then
   echo "Select environment:"
@@ -164,6 +171,9 @@ CONFLICT_STRATEGY=$(yq e "(.envs.${ENV}.conflict_strategy // .conflict_strategy 
 RERERE_ENABLED=$(yq e ".rerere // \"false\"" "$CONFIG_FILE")
 
 MERGE_EXTRA_FLAGS=()
+if [[ "$NO_CONFLICT_STRATEGY" == true ]]; then
+  CONFLICT_STRATEGY=""
+fi
 case "$CONFLICT_STRATEGY" in
   ours)              MERGE_EXTRA_FLAGS=(-X ours) ;;
   theirs)            MERGE_EXTRA_FLAGS=(-X theirs) ;;
