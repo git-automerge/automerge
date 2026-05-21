@@ -10,6 +10,10 @@ push_mode: tag   # or "branch"
 # Optional: enable git rerere to replay previously recorded conflict resolutions.
 # rerere: true
 
+# Optional: delete existing local and remote `automerge_<env>_*` branches before
+# creating the new temp branch. Can also be set per-env (per-env wins).
+# cleanup_stale_branches: true
+
 envs:
   staging:
     base: main

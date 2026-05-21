@@ -198,3 +198,20 @@ envs:
 ```
 
 This is useful when the pushed tag or branch serves only as a transient deployment trigger and should not accumulate in the remote repository.
+
+## Cleaning up stale automerge branches (`cleanup_stale_branches`)
+
+Set `cleanup_stale_branches: true` to delete all existing local and remote `automerge_<env>_*` branches for the selected environment before the new temp branch is created and merging begins. This prevents stale automerge branches from accumulating when runs fail mid-way or cleanup is skipped.
+
+```yaml
+cleanup_stale_branches: true  # default: false
+
+envs:
+  staging:
+    base: main
+    branches:
+      - "feature/*"
+    # cleanup_stale_branches: true  # per-env, overrides global
+```
+
+Can be set globally or per-environment (per-env wins). If a matching branch cannot be deleted (e.g. it is checked out elsewhere), git-automerge emits a warning and continues rather than aborting.
