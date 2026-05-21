@@ -155,6 +155,16 @@ envs:
 
 When a strategy is active, git-automerge prints the selected strategy before merging begins. If Git still cannot auto-resolve every conflict with the chosen strategy, it falls back to the interactive prompt so you can resolve the remainder by hand.
 
+### Overriding the strategy for a single run (`--no-conflict-strategy`)
+
+Pass `--no-conflict-strategy` on the command line to ignore any configured `conflict_strategy` for the current run and fall back to interactive (manual) conflict resolution:
+
+```bash
+git automerge --env=staging --no-conflict-strategy
+```
+
+This is useful for one-off runs where the configured strategy should not auto-resolve conflicts — for example, when merging branches with intentional divergence that needs human review. The flag has no effect on `rerere`; recorded resolutions are still replayed if `rerere: true` is set.
+
 ### Recording and replaying resolutions (`rerere`)
 
 Setting `rerere: true` enables [git rerere](https://git-scm.com/docs/git-rerere) (*reuse recorded resolution*) for the duration of the run. When enabled, Git records how you resolve each conflict the first time it appears. On future runs that encounter the same conflict, Git replays the recorded resolution automatically — no manual intervention needed.
