@@ -1,0 +1,12 @@
+conflict_strategy: theirs
+
+envs:
+  staging:
+    base: main
+    branches:
+      - branch-conflict-*
+  per-env-override:
+    base: main
+    branches:
+      - branch-conflict-*
+    conflict_strategy: ours
