@@ -35,7 +35,7 @@ EOF
   exit
 fi
 
-VERSION="1.0.1"
+VERSION="1.1.0"
 echo "ℹ️  git-automerge v${VERSION}"
 
 ORIGINAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
