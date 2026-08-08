@@ -1,0 +1,45 @@
+name: Test Suite
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - 'bin/**'
+      - 'test/**'
+      - '.github/workflows/test.yml'
+  pull_request:
+    paths:
+      - 'bin/**'
+      - 'test/**'
+      - '.github/workflows/test.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y bats
+          # Install mikefarah/yq
+          YQ_VERSION="v4.44.2"
+          sudo wget -qO /usr/local/bin/yq \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+          bats --version
+
+      - name: Install bats helper libraries
+        run: |
+          mkdir -p test/bats_libs
+          git clone --depth 1 https://github.com/bats-core/bats-support.git test/bats_libs/bats-support
+          git clone --depth 1 https://github.com/bats-core/bats-assert.git  test/bats_libs/bats-assert
+
+      - name: Run tests
+        run: |
+          export BATS_LIB_PATH="$PWD/test/bats_libs"
+          bats --tap test/*.bats

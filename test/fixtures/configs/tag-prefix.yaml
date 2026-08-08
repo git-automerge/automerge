@@ -1,0 +1,15 @@
+envs:
+  no-prefix:
+    base: main
+    branches:
+      - feature/*
+    tag_prefix: false
+  custom-prefix:
+    base: main
+    branches:
+      - feature/*
+    tag_prefix: "release-"
+  default-prefix:
+    base: main
+    branches:
+      - feature/*

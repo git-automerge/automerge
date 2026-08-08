@@ -198,3 +198,37 @@ envs:
 ```
 
 This is useful when the pushed tag or branch serves only as a transient deployment trigger and should not accumulate in the remote repository.
+
+---
+
+## Development
+
+### Running the test suite
+
+The test suite uses [bats-core](https://github.com/bats-core/bats-core) and runs fully offline against local bare repos — no real GitHub remote required.
+
+**Prerequisites:** `git`, `bash` 4+, `yq` (mikefarah/yq), `bats-core`
+
+```bash
+# macOS
+brew install bats-core yq
+
+# Ubuntu/Debian
+sudo apt-get install bats
+# install yq separately: https://github.com/mikefarah/yq#install
+```
+
+**Run:**
+
+```bash
+./test/run.sh
+```
+
+Or run individual files:
+
+```bash
+bats test/init.bats
+bats test/merge-basic.bats
+```
+
+The suite covers: `init`, config loading (local + remote `config_source`), `--env=` flag, interactive env selection, branch matching, basic merges, tag creation, tag prefix variants, push mode (tag vs branch), conflict strategy (all 5 variants + per-env override + `--no-conflict-strategy`), `rerere`, version output, and error handling.

@@ -1,0 +1,9 @@
+envs:
+  staging:
+    base: main
+    branches:
+      - feature/*
+  hotfix:
+    base: main
+    branches:
+      - hotfix/*

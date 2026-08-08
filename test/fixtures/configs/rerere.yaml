@@ -1,0 +1,7 @@
+rerere: true
+
+envs:
+  staging:
+    base: main
+    branches:
+      - feature/*
