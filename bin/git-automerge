@@ -14,6 +14,7 @@ if [[ "$1" == "init" ]]; then
   # Example configuration for git automerge
   # config_source: origin/production:automerge-config.yaml
   # push_mode: branch # push mode branch or tag
+  # use_timestamp: false # default true; when false, branch/tag names are stable and reused (existing ones are deleted before push)
 
   envs:
     staging:
@@ -236,9 +237,26 @@ for b in "${MATCHED_BRANCHES[@]}"; do
 done
 
 # Create temp branch
-TIMESTAMP=$(date +"%Y%m%d%H%M%S")
-TEMP_BRANCH="automerge_${ENV}_${TIMESTAMP}"
-TAG_NAME="${TAG_PREFIX}${ENV}-${TIMESTAMP}"
+# Note: yq's `//` alternative operator treats `false` as falsy, so an explicit
+# `use_timestamp: false` would be silently overridden by a `// true` default.
+# Read the raw value instead and only treat the literal "false" as disabling it.
+USE_TIMESTAMP_RAW=$(yq e ".use_timestamp" "$CONFIG_FILE")
+if [[ "$USE_TIMESTAMP_RAW" == "false" ]]; then
+  TIMESTAMP=""
+  TEMP_BRANCH="automerge_${ENV}"
+  TAG_NAME="${TAG_PREFIX}${ENV}"
+else
+  TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+  TEMP_BRANCH="automerge_${ENV}_${TIMESTAMP}"
+  TAG_NAME="${TAG_PREFIX}${ENV}-${TIMESTAMP}"
+fi
+
+# With timestamps disabled, branch/tag names are stable across runs, so a
+# leftover local branch from a previous run must be removed before reuse.
+if git show-ref --verify --quiet "refs/heads/$TEMP_BRANCH"; then
+  echo "🧹 Local branch '$TEMP_BRANCH' already exists. Deleting it before recreating..."
+  git branch -D "$TEMP_BRANCH" >/dev/null 2>&1 || true
+fi
 
 echo "Creating branch '$TEMP_BRANCH' from origin/$BASE_BRANCH..."
 git checkout -b "$TEMP_BRANCH" "origin/$BASE_BRANCH"
@@ -280,12 +298,20 @@ PUSH_MODE=$(yq e ".push_mode // \"tag\"" "$CONFIG_FILE")
 
 # Push either tag or branch
 if [[ "$PUSH_MODE" == "branch" ]]; then
+  if git ls-remote --exit-code --heads origin "$TEMP_BRANCH" >/dev/null 2>&1; then
+    echo "🧹 Remote branch '$TEMP_BRANCH' already exists. Deleting it before pushing..."
+    git push origin --delete "$TEMP_BRANCH" || true
+  fi
   echo "🚀 Pushing temporary branch: $TEMP_BRANCH"
   git push origin "$TEMP_BRANCH"
   echo "✅ Branch '$TEMP_BRANCH' pushed to origin."
 else
+  if git ls-remote --exit-code --tags origin "$TAG_NAME" >/dev/null 2>&1; then
+    echo "🧹 Remote tag '$TAG_NAME' already exists. Deleting it before pushing..."
+    git push origin ":refs/tags/$TAG_NAME" || true
+  fi
   echo "🏷️  Creating tag: $TAG_NAME"
-  git tag "$TAG_NAME"
+  git tag -f "$TAG_NAME"
   git push origin "$TAG_NAME"
   echo "✅ Tag '$TAG_NAME' pushed to origin."
 fi

@@ -199,6 +199,21 @@ envs:
 
 This is useful when the pushed tag or branch serves only as a transient deployment trigger and should not accumulate in the remote repository.
 
+## Disabling the timestamp suffix (`use_timestamp`)
+
+By default, the temp branch and tag names include a timestamp
+(`automerge_<env>_<timestamp>` / `<prefix><env>-<timestamp>`), so every run
+produces a unique name. Set `use_timestamp: false` to drop the timestamp and
+reuse a stable name (`automerge_<env>` / `<prefix><env>`) on every run.
+
+```yaml
+use_timestamp: false  # default: true
+```
+
+Since the name is no longer unique per run, an existing local or remote
+branch/tag with that name is deleted before the new one is created and
+pushed, so the run always succeeds instead of failing on a name collision.
+
 ---
 
 ## Development
@@ -231,4 +246,4 @@ bats test/init.bats
 bats test/merge-basic.bats
 ```
 
-The suite covers: `init`, config loading (local + remote `config_source`), `--env=` flag, interactive env selection, branch matching, basic merges, tag creation, tag prefix variants, push mode (tag vs branch), conflict strategy (all 5 variants + per-env override + `--no-conflict-strategy`), `rerere`, version output, and error handling.
+The suite covers: `init`, config loading (local + remote `config_source`), `--env=` flag, interactive env selection, branch matching, basic merges, tag creation, tag prefix variants, push mode (tag vs branch), conflict strategy (all 5 variants + per-env override + `--no-conflict-strategy`), `rerere`, `use_timestamp`, version output, and error handling.

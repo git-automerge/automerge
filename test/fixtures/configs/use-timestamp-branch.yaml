@@ -1,0 +1,8 @@
+use_timestamp: false
+push_mode: branch
+
+envs:
+  staging:
+    base: main
+    branches:
+      - feature/*

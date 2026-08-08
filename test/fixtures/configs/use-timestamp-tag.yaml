@@ -1,0 +1,7 @@
+use_timestamp: false
+
+envs:
+  staging:
+    base: main
+    branches:
+      - feature/*

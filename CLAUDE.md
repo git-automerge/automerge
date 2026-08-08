@@ -59,6 +59,7 @@ Supporting files:
 | `envs.<name>.tag_prefix` | `"automerge-"` | `false` = no prefix, omitted = default prefix |
 | `conflict_strategy` | — | `ours`, `theirs`, `ours+whitespace`, `theirs+whitespace`, `whitespace`; settable globally or per-env (per-env wins) |
 | `rerere` | `false` | Enables `git rerere` for the run; resolutions are recorded and auto-replayed on future runs |
+| `use_timestamp` | `true` | `false` drops the timestamp suffix, producing stable branch/tag names (`automerge_<env>` / `<prefix><env>`); a pre-existing local/remote branch or tag with that name is deleted before the new one is created and pushed |
 
 ## Things to keep in mind
 

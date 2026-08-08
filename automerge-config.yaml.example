@@ -3,6 +3,12 @@
 config_source: origin/main:automerge-config.yaml
 push_mode: tag   # or "branch"
 
+# Optional: disable the timestamp suffix on generated branch/tag names.
+# When false, names are stable (automerge_<env> / <prefix><env>) and reused
+# across runs; a pre-existing local/remote branch or tag with that name is
+# deleted before the new one is created and pushed.
+# use_timestamp: false
+
 # Optional: auto-resolve merge conflicts using a strategy.
 # Values: ours, theirs, ours+whitespace, theirs+whitespace, whitespace
 # conflict_strategy: whitespace
