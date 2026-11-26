@@ -247,3 +247,14 @@ bats test/merge-basic.bats
 ```
 
 The suite covers: `init`, config loading (local + remote `config_source`), `--env=` flag, interactive env selection, branch matching, basic merges, tag creation, tag prefix variants, push mode (tag vs branch), conflict strategy (all 5 variants + per-env override + `--no-conflict-strategy`), `rerere`, `use_timestamp`, version output, and error handling.
+
+
+---
+
+## License
+
+Git AutoMerge is open source and released under the [MIT License](LICENSE).
+
+Copyright (c) 2026 Bennet Veit
+
+You may use, copy, modify, merge, publish, distribute and sublicense this software, provided that the copyright notice and the license text are included in all copies or substantial portions of it.
